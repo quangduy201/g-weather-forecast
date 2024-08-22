@@ -1,0 +1,96 @@
+package vn.id.quangduy.gweatherforecast.services;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import vn.id.quangduy.gweatherforecast.dto.ForecastDay;
+import vn.id.quangduy.gweatherforecast.dto.responses.ForecastResponse;
+import vn.id.quangduy.gweatherforecast.models.EmailSubscription;
+import vn.id.quangduy.gweatherforecast.repositories.EmailSubscriptionRepository;
+
+import java.util.List;
+
+@Service
+public class EmailService {
+
+    @Value("${spring.mail.username}")
+    private String from;
+
+    @Value("${backend.baseurl}")
+    private String backendUrl;
+
+    @Value("${frontend.baseurl}")
+    private String frontendUrl;
+
+    private final JavaMailSender mailSender;
+    private final EmailSubscriptionRepository subscriptionRepository;
+    private final WeatherService weatherService;
+
+    @Autowired
+    public EmailService(JavaMailSender mailSender, EmailSubscriptionRepository subscriptionRepository, WeatherService weatherService) {
+        this.mailSender = mailSender;
+        this.subscriptionRepository = subscriptionRepository;
+        this.weatherService = weatherService;
+    }
+
+    @Scheduled(cron = "0 0 7 * * *") // Runs every day at 7 AM
+    public void sendDailyWeatherEmails() {
+        List<EmailSubscription> subscriptions = subscriptionRepository.findAll();
+        for (EmailSubscription subscription : subscriptions) {
+            String location = subscription.getLocation();
+            ForecastResponse forecast = weatherService.getForecast(location, 1); // Get forecast for the current day
+            ForecastDay forecastDay = forecast.getForecast().getForecastday().get(0);
+
+            String subject = "Daily Weather Forecast (" + forecastDay.getDate() + ")";
+            String message = "<h1>Location: " + forecast.getLocation().getName() + "</h1>" +
+                    "<img src=\"https:" + forecastDay.getDay().getCondition().getIcon() + "\" />" +
+                    "<h2>" + forecastDay.getDay().getCondition().getText() + "</h2>" +
+                    "<p>Average temperature: " + forecastDay.getDay().getAvgtemp_c() + "°C</p>" +
+                    "<p>Max wind: " + String.format("%.2f", forecastDay.getDay().getMaxwind_kph() / 3.6) + " M/S</p>" +
+                    "<p>Average humidity: " + forecastDay.getDay().getAvghumidity() + "%</p>" +
+                    "<p>Have a great day!</p>" +
+                    "<p>If you wish to unsubscribe from these emails, click <a href=\"" + backendUrl + "/api/subscription/unsubscribe?email=" + subscription.getEmail() + "\">here</a>.</p>";
+
+            sendEmail(subscription.getEmail(), subject, message);
+        }
+    }
+
+    public void sendConfirmationEmail(String email, String token) {
+        String subject = "Confirm Your Subscription";
+        String confirmationUrl = backendUrl + "/api/subscription/confirm-subscription?token=" + token;
+        String message = "<p>Thank you for registering to receive daily weather forecasts. Please click the link below to confirm your subscription:</p>"
+                + "<a href=\"" + confirmationUrl + "\">Confirm Subscription</a>";
+
+        sendEmail(email, subject, message);
+    }
+
+    public void sendUnsubscriptionEmail(String email, String token) {
+        String subject = "Confirm Your Unsubscription";
+        String unsubscriptionUrl = backendUrl + "/api/subscription/confirm-unsubscription?token=" + token;
+        String message = "<p>You have requested to unsubscribe from daily weather forecasts. Please click the link below to confirm your unsubscription:</p>"
+                + "<a href=\"" + unsubscriptionUrl + "\">Confirm Unsubscription</a>";
+
+        sendEmail(email, subject, message);
+    }
+
+    @Async
+    public void sendEmail(String to, String subject, String content) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+            helper.setFrom(from);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(content, true);
+            mailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            // Handle exception
+        }
+    }
+}
