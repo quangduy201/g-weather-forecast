@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: quangduy201/g-weather-forecast:latest
     ports:
       - "8090:8080"
     env_file:
