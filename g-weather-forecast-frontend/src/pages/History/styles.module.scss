@@ -1,0 +1,38 @@
+.history {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.left {
+  width: 30%;
+  padding: 10px;
+  border-right: 1px solid #ccc;
+  color: black;
+
+  ul {
+    list-style-type: none;
+  }
+}
+
+.right {
+  width: 65%;
+  padding: 10px;
+}
+
+li {
+  cursor: pointer;
+  padding: 5px;
+  margin-bottom: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+li:hover {
+  background-color: #f0f0f0;
+}
+
+.searchResult {
+  display: flex;
+  justify-content: space-between;
+}

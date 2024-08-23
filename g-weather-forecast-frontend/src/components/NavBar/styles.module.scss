@@ -3,12 +3,24 @@
   width: 100%;
   height: 70px;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   background-color: #5372f0;
   font-size: 2rem;
   font-weight: 500;
+  padding: 0 20px;
+}
 
-  span {
+.navLinks {
+  display: flex;
+  gap: 20px;
 
+  a {
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
