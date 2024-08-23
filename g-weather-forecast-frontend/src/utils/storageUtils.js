@@ -1,33 +1,37 @@
-// Get the current date as a string in YYYY-MM-DD format
-export const getCurrentDateString = () => {
-    const now = new Date();
-    return now.toISOString().split('T')[0];
-};
+// Get recent searches from localStorage
+export const getRecentSearchesFromLocalStorage = () => {
+    const savedDate = localStorage.getItem('savedDate');
+    const currentDate = new Date().toDateString();
 
-// Save search data to localStorage
-export const saveSearchToLocalStorage = (weatherData) => {
-    const currentDateString = getCurrentDateString();
-    const searches = JSON.parse(localStorage.getItem('recentSearches')) || {};
-
-    // Clear out any old searches if the date has changed
-    if (searches.date !== currentDateString) {
-        localStorage.removeItem('recentSearches');
+    // Check if the saved date is different from the current date
+    if (savedDate !== currentDate) {
+        // If different, clear the searches and save the new date
+        clearLocalStorage();
+        localStorage.setItem('savedDate', currentDate);
+        return [];
     }
 
-    // Save the new search
-    searches.date = currentDateString;
-    searches.data = searches.data || [];
-    searches.data.push(weatherData);
+    const searches = localStorage.getItem('recentSearches');
+    return searches ? JSON.parse(searches) : [];
+};
 
+// Save a search result to localStorage
+export const saveSearchResultToLocalStorage = (result) => {
+    const currentDate = new Date().toDateString();
+    const searches = getRecentSearchesFromLocalStorage();
+    const newSearches = [result, ...searches]
+    localStorage.setItem('recentSearches', JSON.stringify(newSearches));
+    localStorage.setItem('savedDate', currentDate); // Update the saved date
+};
+
+// Remove a search result from localStorage
+export const removeSearchResultFromLocalStorage = (index) => {
+    const searches = getRecentSearchesFromLocalStorage();
+    searches.splice(index, 1); // Remove item at index
     localStorage.setItem('recentSearches', JSON.stringify(searches));
 };
 
-// Retrieve stored searches from localStorage
-export const getStoredSearches = () => {
-    const searches = JSON.parse(localStorage.getItem('recentSearches'));
-    if (!searches || searches.date !== getCurrentDateString()) {
-        localStorage.removeItem('recentSearches');
-        return []; // Return an empty array if no searches or the date has changed
-    }
-    return searches.data;
+// Clear localStorage
+export const clearLocalStorage = () => {
+    localStorage.removeItem('recentSearches');
 };
