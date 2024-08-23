@@ -6,8 +6,9 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import vn.id.quangduy.gweatherforecast.dto.responses.ForecastResponse;
 import vn.id.quangduy.gweatherforecast.dto.responses.CurrentResponse;
+import vn.id.quangduy.gweatherforecast.dto.responses.ForecastResponse;
+import vn.id.quangduy.gweatherforecast.dto.responses.TimezoneResponse;
 
 import java.time.Duration;
 
@@ -29,37 +30,35 @@ public class WeatherService {
         this.restTemplate = builder.build();
     }
 
+    public TimezoneResponse getTimezone(String location) {
+        String cacheKey = "location:" + location;
+        String url = String.format("%s/timezone.json?key=%s&q=%s", baseUrl, apiKey, location);
+        return getApiResponse(cacheKey, url, TimezoneResponse.class);
+    }
+
     public CurrentResponse getCurrentWeather(String location) {
         String cacheKey = "currentWeather:" + location;
-
-        // Check if the data is in the cache
-        CurrentResponse cachedResponse = (CurrentResponse) redisTemplate.opsForValue().get(cacheKey);
-        if (cachedResponse != null) {
-            return cachedResponse;
-        }
-
-        // Fetch from the API if not in cache
         String url = String.format("%s/current.json?key=%s&q=%s", baseUrl, apiKey, location);
-        CurrentResponse apiResponse = restTemplate.getForObject(url, CurrentResponse.class);
-
-        // Cache the API response
-        redisTemplate.opsForValue().set(cacheKey, apiResponse, Duration.ofHours(1));
-
-        return apiResponse;
+        return getApiResponse(cacheKey, url, CurrentResponse.class);
     }
 
     public ForecastResponse getForecast(String location, int days) {
         String cacheKey = "forecastWeather:" + location + ":" + days;
+        String url = String.format("%s/forecast.json?key=%s&q=%s&days=%d", baseUrl, apiKey, location, days);
+        return getApiResponse(cacheKey, url, ForecastResponse.class);
+    }
 
+    // Helper method to handle the common logic
+    @SuppressWarnings("unchecked")
+    private <T> T getApiResponse(String cacheKey, String url, Class<T> responseType) {
         // Check if the data is in the cache
-        ForecastResponse cachedResponse = (ForecastResponse) redisTemplate.opsForValue().get(cacheKey);
+        T cachedResponse = (T) redisTemplate.opsForValue().get(cacheKey);
         if (cachedResponse != null) {
             return cachedResponse;
         }
 
         // Fetch from the API if not in cache
-        String url = String.format("%s/forecast.json?key=%s&q=%s&days=%d", baseUrl, apiKey, location, days);
-        ForecastResponse apiResponse = restTemplate.getForObject(url, ForecastResponse.class);
+        T apiResponse = restTemplate.getForObject(url, responseType);
 
         // Cache the API response
         redisTemplate.opsForValue().set(cacheKey, apiResponse, Duration.ofHours(1));
