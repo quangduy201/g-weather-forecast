@@ -3,8 +3,10 @@ package vn.id.quangduy.gweatherforecast.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.id.quangduy.gweatherforecast.dto.Location;
 import vn.id.quangduy.gweatherforecast.models.EmailSubscription;
 import vn.id.quangduy.gweatherforecast.repositories.EmailSubscriptionRepository;
+import vn.id.quangduy.gweatherforecast.utils.TimezoneUtils;
 
 import java.util.UUID;
 
@@ -13,17 +15,21 @@ public class EmailSubscriptionService {
 
     private final EmailSubscriptionRepository emailSubscriptionRepository;
     private final EmailService emailService;
+    private final WeatherService weatherService;
 
     @Autowired
-    public EmailSubscriptionService(EmailSubscriptionRepository emailSubscriptionRepository, EmailService emailService) {
+    public EmailSubscriptionService(EmailSubscriptionRepository emailSubscriptionRepository, EmailService emailService, WeatherService weatherService) {
         this.emailSubscriptionRepository = emailSubscriptionRepository;
         this.emailService = emailService;
+        this.weatherService = weatherService;
     }
 
     @Transactional
-    public void register(String email, String location) {
+    public void register(String email, String coordinates) {
         String token = UUID.randomUUID().toString();
-        EmailSubscription subscription = new EmailSubscription(email, location, false, token);
+        Location location = weatherService.getTimezone(coordinates).getLocation();
+        double doubleTimezoneOffset = TimezoneUtils.convertTimezoneToDouble(location.getTz_id());
+        EmailSubscription subscription = new EmailSubscription(email, location.getName(), doubleTimezoneOffset, false, token);
         emailSubscriptionRepository.save(subscription);
 
         // Send confirmation email
@@ -62,9 +68,5 @@ public class EmailSubscriptionService {
             return true;
         }
         return false;
-    }
-
-    public void sendDailyForecast() {
-        emailService.sendDailyWeatherEmails();
     }
 }

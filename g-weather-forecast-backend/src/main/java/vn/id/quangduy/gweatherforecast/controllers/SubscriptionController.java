@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vn.id.quangduy.gweatherforecast.dto.requests.RegisterRequest;
+import vn.id.quangduy.gweatherforecast.dto.requests.UnsubscribeRequest;
 import vn.id.quangduy.gweatherforecast.services.EmailSubscriptionService;
 
 @RestController
@@ -21,8 +23,8 @@ public class SubscriptionController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestParam String email, @RequestParam String location) {
-        emailSubscriptionService.register(email, location);
+    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+        emailSubscriptionService.register(request.getEmail(), request.getCoordinates());
         return ResponseEntity.ok("Confirmation email sent. Please check your inbox.");
     }
 
@@ -39,8 +41,8 @@ public class SubscriptionController {
     }
 
     @PostMapping("/unsubscribe")
-    public ResponseEntity<String> unsubscribe(@RequestParam String email) {
-        emailSubscriptionService.unsubscribe(email);
+    public ResponseEntity<String> unsubscribe(@RequestBody UnsubscribeRequest request) {
+        emailSubscriptionService.unsubscribe(request.getEmail());
         return ResponseEntity.ok("Unsubscription email sent. Please check your inbox.");
     }
 
@@ -52,11 +54,5 @@ public class SubscriptionController {
         } else {
             return ResponseEntity.badRequest().body("Invalid token or already unsubscribed.");
         }
-    }
-
-    @GetMapping("/daily")
-    public ResponseEntity<?> sendDailyForecast() {
-        emailSubscriptionService.sendDailyForecast();
-        return ResponseEntity.ok("Daily forecast sent.");
     }
 }

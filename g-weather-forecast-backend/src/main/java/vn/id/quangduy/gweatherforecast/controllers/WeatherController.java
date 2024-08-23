@@ -1,10 +1,12 @@
 package vn.id.quangduy.gweatherforecast.controllers;
 
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import vn.id.quangduy.gweatherforecast.dto.responses.ForecastResponse;
 import vn.id.quangduy.gweatherforecast.dto.responses.CurrentResponse;
 import vn.id.quangduy.gweatherforecast.services.WeatherService;
@@ -27,7 +29,11 @@ public class WeatherController {
 
     @GetMapping("/forecast")
     public ResponseEntity<ForecastResponse> getForecast(@RequestParam String location, @RequestParam int days) {
-        ForecastResponse forecastResponse = weatherService.getForecast(location, days);
-        return ResponseEntity.ok(forecastResponse);
+        try {
+            ForecastResponse forecastResponse = weatherService.getForecast(location, days);
+            return ResponseEntity.ok(forecastResponse);
+        } catch (HttpClientErrorException e) {
+            return ResponseEntity.status(e.getStatusCode()).build();
+        }
     }
 }

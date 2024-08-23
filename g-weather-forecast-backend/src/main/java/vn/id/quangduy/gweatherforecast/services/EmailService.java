@@ -13,6 +13,7 @@ import vn.id.quangduy.gweatherforecast.dto.ForecastDay;
 import vn.id.quangduy.gweatherforecast.dto.responses.ForecastResponse;
 import vn.id.quangduy.gweatherforecast.models.EmailSubscription;
 import vn.id.quangduy.gweatherforecast.repositories.EmailSubscriptionRepository;
+import vn.id.quangduy.gweatherforecast.utils.TimezoneUtils;
 
 import java.util.List;
 
@@ -39,23 +40,25 @@ public class EmailService {
         this.weatherService = weatherService;
     }
 
-    @Scheduled(cron = "0 0 7 * * *") // Runs every day at 7 AM
-    public void sendDailyWeatherEmails() {
-        List<EmailSubscription> subscriptions = subscriptionRepository.findAll();
+    @Scheduled(cron = "0 0,15,30,45 * * * *") // Runs every hour at 0, 15, 30, 45 minutes
+    public void sendDailyForecastEmails() {
+        double clientOffset = TimezoneUtils.getClientTimezoneOffsetAt(7);
+        List<EmailSubscription> subscriptions = subscriptionRepository.findByTimezoneOffset(clientOffset);
         for (EmailSubscription subscription : subscriptions) {
             String location = subscription.getLocation();
             ForecastResponse forecast = weatherService.getForecast(location, 1); // Get forecast for the current day
             ForecastDay forecastDay = forecast.getForecast().getForecastday().get(0);
 
             String subject = "Daily Weather Forecast (" + forecastDay.getDate() + ")";
+            String unsubscriptionUrl = backendUrl + "/api/subscription/unsubscribe?email=" + subscription.getEmail();
             String message = "<h1>Location: " + forecast.getLocation().getName() + "</h1>" +
                     "<img src=\"https:" + forecastDay.getDay().getCondition().getIcon() + "\" />" +
                     "<h2>" + forecastDay.getDay().getCondition().getText() + "</h2>" +
                     "<p>Average temperature: " + forecastDay.getDay().getAvgtemp_c() + "°C</p>" +
                     "<p>Max wind: " + String.format("%.2f", forecastDay.getDay().getMaxwind_kph() / 3.6) + " M/S</p>" +
-                    "<p>Average humidity: " + forecastDay.getDay().getAvghumidity() + "%</p>" +
+                    "<p>Average humidity: " + forecastDay.getDay().getAvghumidity() + "%</p><hr>" +
                     "<p>Have a great day!</p>" +
-                    "<p>If you wish to unsubscribe from these emails, click <a href=\"" + backendUrl + "/api/subscription/unsubscribe?email=" + subscription.getEmail() + "\">here</a>.</p>";
+                    "<p>If you wish to unsubscribe from these emails, click <a href=\"" + unsubscriptionUrl + "\">here</a>.</p>";
 
             sendEmail(subscription.getEmail(), subject, message);
         }

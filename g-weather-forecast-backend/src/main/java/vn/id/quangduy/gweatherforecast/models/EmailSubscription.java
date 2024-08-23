@@ -16,12 +16,14 @@ public class EmailSubscription {
     private Long id;
     private String email;
     private String location;
-    private boolean confirmed;
+    private double timezoneOffset;
+    ;private boolean confirmed;
     private String confirmationToken;
 
-    public EmailSubscription(String email, String location, boolean confirmed, String confirmationToken) {
+    public EmailSubscription(String email, String location, double timezoneOffset, boolean confirmed, String confirmationToken) {
         this.email = email;
         this.location = location;
+        this.timezoneOffset = timezoneOffset;
         this.confirmed = confirmed;
         this.confirmationToken = confirmationToken;
     }
