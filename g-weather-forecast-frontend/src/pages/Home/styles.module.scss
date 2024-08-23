@@ -18,6 +18,18 @@
       flex: 2;
       padding: 1rem;
 
+      .forecastTitle {
+        display: flex;
+        margin: 2rem 0;
+
+        label {
+          font-size: 1.5rem;
+          font-weight: bold;
+          color: black;
+          justify-self: left;
+        }
+      }
+
       .forecastSection {
         display: flex;
         flex-wrap: wrap;
@@ -33,9 +45,13 @@
         font-size: 1.2rem;
         border: none;
         border-radius: 4px;
-        background-color: #6c757d;
+        background-color: #5372f0;
         color: white;
         cursor: pointer;
+
+        &:hover {
+          background-color: #3855ca;
+        }
       }
     }
   }

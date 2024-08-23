@@ -29,18 +29,19 @@ const Home = () => {
             const response = await axios.get(`${import.meta.env.VITE_BACKEND_BASEURL}/api/weather/forecast?location=${location}&days=${days}`);
 
             setCityName(response.data.location.name);
-            setNumDays(days);
+            setNumDays(days - 1);
             setResult(response.data);
             setWeather(response.data.current);
             const forecastDays = response.data.forecast.forecastday;
             forecastDays.shift(); // Remove first day
             setForecast(forecastDays);
+            setErrorMessage(""); // Clear any previous errors
         } catch (error) {
             console.error('Error fetching weather data:', error);
             if (error.response.status === 400) {
-                return "No location found.";
+                setErrorMessage("No location found.");
             } else {
-                return "The server is not working. Please try again later.";
+                setErrorMessage("The server is not working. Please try again later.");
             }
         }
     };
@@ -57,12 +58,12 @@ const Home = () => {
                 },
                 (error) => {
                     console.error('Error getting location:', error);
-                    return `Can't access to your location because it has been blocked.`;
+                    setErrorMessage("Can't access to your location because it has been blocked.");
                 }
             );
         } else {
             console.error('Geolocation is not supported by this browser.');
-            return `Geolocation is not supported by this browser.`;
+            setErrorMessage("Geolocation is not supported by this browser.");
         }
     };
 
@@ -71,13 +72,20 @@ const Home = () => {
             <NavBar />
             <div className={styles.content}>
                 <div className={styles.left}>
-                    <SearchForm onSearch={handleSearch} onCurrentLocation={handleCurrentLocation} />
+                    <SearchForm
+                        onSearch={handleSearch}
+                        onCurrentLocation={handleCurrentLocation}
+                        errorMessage={errorMessage}
+                        setErrorMessage={setErrorMessage}
+                    />
                 </div>
 
                 <div className={styles.right}>
                     {weather && <WeatherCard location={cityName} weather={weather}/>}
 
-                    <label>{numDays}-Day Forecast</label>
+                    <div className={styles.forecastTitle}>
+                        <label>{numDays}-Day Forecast</label>
+                    </div>
 
                     <div className={styles.forecastSection}>
                         {forecast.length > 0 && forecast.map((day, index) => (

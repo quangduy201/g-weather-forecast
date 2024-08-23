@@ -2,29 +2,20 @@ import styles from "./styles.module.scss";
 import { useState } from "react";
 import PropTypes from "prop-types";
 
-const SearchForm = ({ onSearch, onCurrentLocation }) => {
+const SearchForm = ({ onSearch, onCurrentLocation, errorMessage, setErrorMessage }) => {
     const [cityName, setCityName] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
 
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         setErrorMessage("");
         if (cityName.trim() === "") {
+            setErrorMessage("Please enter a city name.");
             return;
         }
         const error = await onSearch(cityName, 5);
         if (!error) {
             setCityName("");
-            return;
-        }
-        setErrorMessage(error);
-    };
-
-    const handleCurrentLocation = () => {
-        const error = onCurrentLocation();
-        if (error) {
-            setErrorMessage(error);
         }
     };
 
@@ -42,7 +33,7 @@ const SearchForm = ({ onSearch, onCurrentLocation }) => {
             <div className={styles.separator}>
                 or
             </div>
-            <button onClick={handleCurrentLocation} className={styles.currentLocation}>Use Current Location</button>
+            <button type="button" onClick={onCurrentLocation} className={styles.currentLocation}>Use Current Location</button>
         </form>
     );
 };
@@ -50,6 +41,8 @@ const SearchForm = ({ onSearch, onCurrentLocation }) => {
 SearchForm.propTypes = {
     onSearch: PropTypes.func.isRequired,
     onCurrentLocation: PropTypes.func.isRequired,
+    errorMessage: PropTypes.string.isRequired,
+    setErrorMessage: PropTypes.func.isRequired,
 };
 
 export default SearchForm;
