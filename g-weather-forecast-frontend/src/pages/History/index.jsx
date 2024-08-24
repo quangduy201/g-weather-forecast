@@ -30,9 +30,9 @@ const History = () => {
                     {searchResults.map((result, index) => (
                         <li key={index} onClick={() => handleSelectResult(index)}>
                             <div className={styles.searchResult}>
-                                <span>{result.location.name}</span>
-                                <span>{result.currentTime}</span>
-                                <button onClick={() => handleRemoveResult(index)}>Remove</button>
+                                <span className={styles.resultCity}>{result.location.name}</span>
+                                <span className={styles.resultTime}>{result.currentTime}</span>
+                                <button onClick={() => handleRemoveResult(index)} className={styles.removeButton}>Remove</button>
                             </div>
                         </li>
                     ))}

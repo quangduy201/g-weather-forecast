@@ -28,7 +28,7 @@ const SearchForm = ({ onSearch, onCurrentLocation, errorMessage, setErrorMessage
                 onChange={(e) => setCityName(e.target.value)}
                 placeholder="E.g., New York, London, Tokyo"
             />
-            <p>{errorMessage}</p>
+            {errorMessage && <p>{errorMessage}</p>}
             <button type="submit" className={styles.searchLocation}>Search</button>
             <div className={styles.separator}>
                 or

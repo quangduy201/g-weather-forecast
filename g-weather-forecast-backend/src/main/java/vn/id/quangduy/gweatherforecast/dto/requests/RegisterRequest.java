@@ -11,5 +11,5 @@ import java.io.Serializable;
 @Builder
 public class RegisterRequest implements Serializable {
     private String email;
-    private String coordinates;
+    private String location;
 }
