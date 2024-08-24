@@ -23,8 +23,12 @@ public class WeatherController {
 
     @GetMapping("/current")
     public ResponseEntity<CurrentResponse> getCurrentWeather(@RequestParam String location) {
-        CurrentResponse currentResponse = weatherService.getCurrentWeather(location);
-        return ResponseEntity.ok(currentResponse);
+        try {
+            CurrentResponse currentResponse = weatherService.getCurrentWeather(location);
+            return ResponseEntity.ok(currentResponse);
+        } catch (HttpClientErrorException e) {
+            return ResponseEntity.status(e.getStatusCode()).build();
+        }
     }
 
     @GetMapping("/forecast")

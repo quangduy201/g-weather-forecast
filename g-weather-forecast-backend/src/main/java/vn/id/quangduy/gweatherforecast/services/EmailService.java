@@ -66,7 +66,7 @@ public class EmailService {
 
     public void sendConfirmationEmail(String email, String token) {
         String subject = "Confirm Your Subscription";
-        String confirmationUrl = backendUrl + "/api/subscription/confirm-subscription?token=" + token;
+        String confirmationUrl = frontendUrl + "/subscription-confirm?token=" + token;
         String message = "<p>Thank you for registering to receive daily weather forecasts. Please click the link below to confirm your subscription:</p>"
                 + "<a href=\"" + confirmationUrl + "\">Confirm Subscription</a>";
 
@@ -75,7 +75,7 @@ public class EmailService {
 
     public void sendUnsubscriptionEmail(String email, String token) {
         String subject = "Confirm Your Unsubscription";
-        String unsubscriptionUrl = backendUrl + "/api/subscription/confirm-unsubscription?token=" + token;
+        String unsubscriptionUrl = frontendUrl + "/unsubscription-confirm?token=" + token;
         String message = "<p>You have requested to unsubscribe from daily weather forecasts. Please click the link below to confirm your unsubscription:</p>"
                 + "<a href=\"" + unsubscriptionUrl + "\">Confirm Unsubscription</a>";
 
