@@ -1,12 +1,11 @@
-import styles from './styles.module.scss';
-import PropTypes from 'prop-types';
+import styles from "./styles.module.scss";
+import PropTypes from "prop-types";
 
 const ForecastCard = ({ forecast }) => {
     return (
         <div className={styles.forecastCard}>
             <h2>{forecast.date}</h2>
             <img src={`https:${forecast.day.condition.icon}`} alt={forecast.day.condition.text}/>
-            {/*<p>{forecast.day.condition.text}</p>*/}
             <p>Temp: {forecast.day.avgtemp_c}°C</p>
             <p>Wind: {Math.round(forecast.day.maxwind_kph / 3.6 * 100) / 100} m/s</p>
             <p>Humidity: {forecast.day.avghumidity}%</p>

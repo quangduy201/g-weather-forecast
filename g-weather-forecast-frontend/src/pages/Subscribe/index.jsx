@@ -1,6 +1,7 @@
 import styles from "./styles.module.scss";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
+import { useLoading } from "../../contexts/LoadingContext.jsx";
 
 const Subscribe = () => {
     const [email, setEmail] = useState("");
@@ -10,26 +11,35 @@ const Subscribe = () => {
     const [locationBlocked, setLocationBlocked] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
-    
+
+    const { showLoading, hideLoading } = useLoading();
+
     useEffect(() => {
         if (location) {
-            register(location).then(r => {});
+            register(location).then(() => {});
         }
     }, [location]);
 
     const register = async (location) => {
-        console.log(location);
         try {
-            const response = await axios.post(`${import.meta.env.VITE_BACKEND_BASEURL}/api/subscription/register`, { email: email, location: location});
+            const controller = showLoading();
+
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_BASEURL}/api/subscription/register`, { email: email, location: location}, {
+                signal: controller.signal,
+            });
             setSuccessMessage(response.data);
             setErrorMessage(""); // Clear any previous errors
         } catch (error) {
-            console.error('Error fetching weather data:', error);
+            if (!error.response) { // API was canceled and haven't gotten the response
+                return;
+            }
             if (error.response.status === 400) {
                 setErrorMessage("No location found.");
             } else {
                 setErrorMessage("The server is not working. Please try again later.");
             }
+        } finally {
+            hideLoading();
         }
 
     }
@@ -42,10 +52,8 @@ const Subscribe = () => {
                     setCurrentPosition(coordinates);
                     setLocation(coordinates);
                     setLocationBlocked(false);
-                    console.log(location);
                 },
                 (error) => {
-                    console.error("Error getting location:", error);
                     setErrorMessage("Current location is blocked, please unblock it or enter your city name.");
                     setCurrentPosition("");
                     setLocation(cityName);

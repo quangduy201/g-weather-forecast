@@ -1,10 +1,11 @@
 import styles from './styles.module.scss';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import axios from "axios";
 
 const UnsubscribeConfirm = () => {
     const location = useLocation();
-    const [statusMessage, setStatusMessage] = useState('Processing your unsubscription...');
+    const [statusMessage, setStatusMessage] = useState("Processing your unsubscription...");
     const [statusClass, setStatusClass] = useState('');
 
     useEffect(() => {
@@ -12,29 +13,26 @@ const UnsubscribeConfirm = () => {
         const token = queryParams.get('token');
 
         if (token) {
-            fetch(`${import.meta.env.VITE_BACKEND_BASEURL}/api/subscription/confirm-unsubscription?token=${token}`)
-                .then(response => {
-                    if (response.ok) {
-                        setStatusClass(styles.success);
-                        setStatusMessage('Unsubscription confirmed! You will no longer receive daily weather updates.');
-                    } else {
-                        setStatusClass(styles.error);
-                        setStatusMessage('Invalid token or already unsubscribed.');
-                    }
+            axios.get(`${import.meta.env.VITE_BACKEND_BASEURL}/api/subscription/confirm-unsubscription`, {
+                params: { token }
+            })
+                .then(() => {
+                    setStatusClass(styles.success);
+                    setStatusMessage("Unsubscription confirmed! You will no longer receive daily weather updates.");
                 })
                 .catch(() => {
                     setStatusClass(styles.error);
-                    setStatusMessage('An error occurred while processing your unsubscription.');
+                    setStatusMessage("Invalid token or already unsubscribed.");
                 });
         } else {
             setStatusClass(styles.error);
-            setStatusMessage('Invalid or missing token.');
+            setStatusMessage("Invalid or missing token.");
         }
     }, [location.search]);
 
     return (
-        <div className={styles['unsubscribe-confirm']}>
-            <div className={`${styles['confirmation-box']} ${statusClass}`}>
+        <div className={styles.unsubscribeConfirm}>
+            <div className={`${styles.confirmationBox} ${statusClass}`}>
                 <h1>{statusMessage}</h1>
             </div>
         </div>

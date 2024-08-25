@@ -1,12 +1,16 @@
 .history {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   padding: 20px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 }
 
 .left {
   flex: 1;
-  width: 30%;
   padding: 10px;
   border-right: 1px solid #ccc;
   color: black;
@@ -55,7 +59,7 @@ li {
 }
 
 li:hover {
-  background-color: #f0f0f0;
+  background-color: #c9d3ff;
 }
 
 .searchResult {
