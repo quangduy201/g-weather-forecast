@@ -25,33 +25,38 @@ public class HealthCheckController {
         this.mailSender = mailSender;
     }
 
-    @GetMapping("/postgres")
-    public ResponseEntity<String> checkPostgres() {
+    @GetMapping
+    public ResponseEntity<String> checkHealth() {
+        StringBuilder statusMessage = new StringBuilder("Health Check Results:\n");
+        HttpStatus status = HttpStatus.OK;
+
+        // Check PostgreSQL
         try {
             jdbcTemplate.execute("SELECT 1");
-            return new ResponseEntity<>("PostgreSQL is UP", HttpStatus.OK);
+            statusMessage.append("PostgreSQL is UP\n");
         } catch (Exception e) {
-            return new ResponseEntity<>("PostgreSQL is DOWN", HttpStatus.SERVICE_UNAVAILABLE);
+            statusMessage.append("PostgreSQL is DOWN\n");
+            status = HttpStatus.SERVICE_UNAVAILABLE;
         }
-    }
 
-    @GetMapping("/redis")
-    public ResponseEntity<String> checkRedis() {
+        // Check Redis
         try {
             redisConnectionFactory.getConnection().ping();
-            return new ResponseEntity<>("Redis is UP", HttpStatus.OK);
+            statusMessage.append("Redis is UP\n");
         } catch (Exception e) {
-            return new ResponseEntity<>("Redis is DOWN", HttpStatus.SERVICE_UNAVAILABLE);
+            statusMessage.append("Redis is DOWN\n");
+            status = HttpStatus.SERVICE_UNAVAILABLE;
         }
-    }
 
-    @GetMapping("/mail")
-    public ResponseEntity<String> checkMailSender() {
+        // Check MailSender
         try {
             mailSender.createMimeMessage();
-            return new ResponseEntity<>("MailSender is UP", HttpStatus.OK);
+            statusMessage.append("MailSender is UP\n");
         } catch (Exception e) {
-            return new ResponseEntity<>("MailSender is DOWN", HttpStatus.SERVICE_UNAVAILABLE);
+            statusMessage.append("MailSender is DOWN\n");
+            status = HttpStatus.SERVICE_UNAVAILABLE;
         }
+
+        return new ResponseEntity<>(statusMessage.toString(), status);
     }
 }

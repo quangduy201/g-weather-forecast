@@ -1,7 +1,10 @@
 package vn.id.quangduy.gweatherforecast.models;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,7 +20,7 @@ public class EmailSubscription {
     private String email;
     private String location;
     private double timezoneOffset;
-    ;private boolean confirmed;
+    private boolean confirmed;
     private String confirmationToken;
 
     public EmailSubscription(String email, String location, double timezoneOffset, boolean confirmed, String confirmationToken) {

@@ -40,12 +40,8 @@ public class SubscriptionController {
     public void confirmSubscription(@RequestParam String token, HttpServletResponse response) throws IOException {
         boolean isConfirmed = emailSubscriptionService.confirmSubscription(token);
         if (isConfirmed) {
-//            String message = "Subscription confirmed! You will receive daily weather updates." +
-//                    "<br><br><a href=\"" + frontendUrl + "\">Go to the app</a>";
-//            return ResponseEntity.ok(message);
             response.sendRedirect(frontendUrl + "/subscribe-success");
         } else {
-//            return ResponseEntity.badRequest().body("Invalid token or already confirmed.");
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid token or already confirmed.");
         }
     }
@@ -64,10 +60,8 @@ public class SubscriptionController {
     public void confirmUnsubscription(@RequestParam String token, HttpServletResponse response) throws IOException {
         boolean isUnsubscribed = emailSubscriptionService.confirmUnsubscription(token);
         if (isUnsubscribed) {
-//            return ResponseEntity.ok("Unsubscription confirmed! You will no longer receive daily weather updates.");
             response.sendRedirect(frontendUrl + "/subscribe-success");
         } else {
-//            return ResponseEntity.badRequest().body("Invalid token or already unsubscribed.");
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid token or already confirmed.");
         }
     }

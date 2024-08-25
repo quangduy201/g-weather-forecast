@@ -1,12 +1,17 @@
 .home {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: calc(100vh - 70px); // NavBar's height
 }
 
 .content {
   display: flex;
   flex: 1;
+  flex-direction: row;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 }
 
 .left {

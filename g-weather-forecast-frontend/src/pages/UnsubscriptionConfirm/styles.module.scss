@@ -1,11 +1,11 @@
-.unsubscribe-confirm {
+.unsubscribeConfirm {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 80vh;
+  height: calc(100vh - 70px); // NavBar's height
   font-family: Arial, sans-serif;
 
-  .confirmation-box {
+  .confirmationBox {
     background-color: #ffffff;
     padding: 2rem;
     border-radius: 8px;

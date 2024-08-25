@@ -33,7 +33,7 @@ public class EmailSubscriptionService {
         emailSubscriptionRepository.save(subscription);
 
         // Send confirmation email
-        emailService.sendConfirmationEmail(email, token);
+        emailService.sendConfirmationEmail(email, location.getName(), token);
     }
 
     @Transactional

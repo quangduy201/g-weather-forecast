@@ -61,7 +61,7 @@ public class WeatherService {
         T apiResponse = restTemplate.getForObject(url, responseType);
 
         // Cache the API response
-        redisTemplate.opsForValue().set(cacheKey, apiResponse, Duration.ofHours(1));
+        redisTemplate.opsForValue().set(cacheKey, apiResponse, Duration.ofMinutes(15));
 
         return apiResponse;
     }
