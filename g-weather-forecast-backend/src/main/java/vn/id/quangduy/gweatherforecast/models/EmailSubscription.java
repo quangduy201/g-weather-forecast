@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -17,17 +19,37 @@ public class EmailSubscription {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
     private String email;
+
     private String location;
-    private double timezoneOffset;
+
+    private String coordinates;
+
+    @Column(nullable = false)
+    private String timezone;
+
+    @Column(nullable = false)
+    private String notificationTime;
+
+    @Column(nullable = false)
+    private String notificationUtcTime;
+
     private boolean confirmed;
+
     private String confirmationToken;
 
-    public EmailSubscription(String email, String location, double timezoneOffset, boolean confirmed, String confirmationToken) {
+    private LocalDateTime lastSentAt;
+
+    public EmailSubscription(String email, String location, String coordinates, String timezone, String notificationTime, boolean confirmed, String confirmationToken, LocalDateTime lastSentAt) {
         this.email = email;
         this.location = location;
-        this.timezoneOffset = timezoneOffset;
+        this.coordinates = coordinates;
+        this.timezone = timezone;
+        this.notificationTime = notificationTime;
         this.confirmed = confirmed;
         this.confirmationToken = confirmationToken;
+        this.lastSentAt = lastSentAt;
     }
 }

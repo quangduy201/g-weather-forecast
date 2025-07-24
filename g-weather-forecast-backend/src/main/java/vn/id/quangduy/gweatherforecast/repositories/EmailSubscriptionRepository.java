@@ -7,6 +7,10 @@ import java.util.List;
 
 public interface EmailSubscriptionRepository extends JpaRepository<EmailSubscription, Long> {
     EmailSubscription findByEmail(String email);
+
     EmailSubscription findByConfirmationToken(String token);
-    List<EmailSubscription> findByTimezoneOffsetAndConfirmed(double timezoneOffset, boolean confirmed);
+
+    List<EmailSubscription> findByTimezoneAndConfirmed(String timezone, boolean confirmed);
+
+    List<EmailSubscription> findByNotificationUtcTimeAndConfirmed(String notificationUtcTime, boolean confirmed);
 }

@@ -6,8 +6,9 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.id.quangduy.gweatherforecast.dto.Location;
 import vn.id.quangduy.gweatherforecast.models.EmailSubscription;
 import vn.id.quangduy.gweatherforecast.repositories.EmailSubscriptionRepository;
-import vn.id.quangduy.gweatherforecast.utils.TimezoneUtils;
 
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Service
@@ -25,15 +26,28 @@ public class EmailSubscriptionService {
     }
 
     @Transactional
-    public void register(String email, String coordinates) {
+    public void register(String email, String coordinates, String notificationTime) {
         String token = UUID.randomUUID().toString();
+
         Location location = weatherService.getTimezone(coordinates).getLocation();
-        double doubleTimezoneOffset = TimezoneUtils.convertTimezoneToDouble(location.getTz_id());
-        EmailSubscription subscription = new EmailSubscription(email, location.getName(), doubleTimezoneOffset, false, token);
+        LocalTime localTime = LocalTime.parse(notificationTime);
+        ZonedDateTime userTime = localTime.atDate(LocalDate.now()).atZone(ZoneId.of(location.getTz_id()));
+        ZonedDateTime utcTime = userTime.withZoneSameInstant(ZoneOffset.UTC);
+
+        EmailSubscription subscription = new EmailSubscription();
+        subscription.setEmail(email);
+        subscription.setLocation(location.getName());
+        subscription.setCoordinates(coordinates);
+        subscription.setTimezone(location.getTz_id());
+        subscription.setNotificationTime(notificationTime);
+        subscription.setNotificationUtcTime(utcTime.format(DateTimeFormatter.ofPattern("HH:mm")));
+        subscription.setConfirmed(false);
+        subscription.setConfirmationToken(token);
+        subscription.setLastSentAt(null);
         emailSubscriptionRepository.save(subscription);
 
         // Send confirmation email
-        emailService.sendConfirmationEmail(email, location.getName(), token);
+        emailService.sendConfirmationEmail(email, location.getName(), notificationTime, token);
     }
 
     @Transactional
@@ -64,7 +78,9 @@ public class EmailSubscriptionService {
     public boolean confirmUnsubscription(String token) {
         EmailSubscription subscription = emailSubscriptionRepository.findByConfirmationToken(token);
         if (subscription != null && subscription.isConfirmed()) {
-            emailSubscriptionRepository.delete(subscription);
+            subscription.setConfirmed(false);
+            subscription.setConfirmationToken("");
+            emailSubscriptionRepository.save(subscription);
             return true;
         }
         return false;

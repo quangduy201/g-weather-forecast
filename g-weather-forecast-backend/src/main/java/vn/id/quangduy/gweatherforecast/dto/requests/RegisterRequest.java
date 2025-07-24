@@ -12,4 +12,5 @@ import java.io.Serializable;
 public class RegisterRequest implements Serializable {
     private String email;
     private String location;
+    private String notificationTime;
 }
