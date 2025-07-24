@@ -8,9 +8,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import vn.id.quangduy.gweatherforecast.dto.responses.CurrentResponse;
 import vn.id.quangduy.gweatherforecast.dto.responses.ForecastResponse;
+import vn.id.quangduy.gweatherforecast.dto.responses.SearchLocation;
 import vn.id.quangduy.gweatherforecast.dto.responses.TimezoneResponse;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class WeatherService {
@@ -28,6 +31,13 @@ public class WeatherService {
     public WeatherService(RestTemplateBuilder builder, RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
         this.restTemplate = builder.build();
+    }
+
+    public List<SearchLocation> getSearch(String query) {
+        String cacheKey = "search:" + query;
+        String url = String.format("%s/search.json?key=%s&q=%s", baseUrl, apiKey, query);
+        SearchLocation[] results = getApiResponse(cacheKey, url, SearchLocation[].class);
+        return Arrays.asList(results);
     }
 
     public TimezoneResponse getTimezone(String location) {

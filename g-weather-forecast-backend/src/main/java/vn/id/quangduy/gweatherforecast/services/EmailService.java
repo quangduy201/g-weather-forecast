@@ -13,9 +13,13 @@ import vn.id.quangduy.gweatherforecast.dto.ForecastDay;
 import vn.id.quangduy.gweatherforecast.dto.responses.ForecastResponse;
 import vn.id.quangduy.gweatherforecast.models.EmailSubscription;
 import vn.id.quangduy.gweatherforecast.repositories.EmailSubscriptionRepository;
-import vn.id.quangduy.gweatherforecast.utils.TimezoneUtils;
 
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Service
 public class EmailService {
@@ -29,8 +33,6 @@ public class EmailService {
     @Value("${frontend.baseurl}")
     private String frontendUrl;
 
-    private final static int DAILY_HOUR = 7;
-
     private final JavaMailSender mailSender;
     private final EmailSubscriptionRepository subscriptionRepository;
     private final WeatherService weatherService;
@@ -42,11 +44,11 @@ public class EmailService {
         this.weatherService = weatherService;
     }
 
-    @Scheduled(cron = "0 0,15,30,45 * * * *") // Runs every hour at 0, 15, 30, 45 minutes
+    @Scheduled(cron = "0 * * * * *") // Runs every minute
     public void sendDailyForecastEmails() {
-        // Find the timezone offset where it is currently 7AM
-        double clientOffset = TimezoneUtils.getClientTimezoneOffsetAt(DAILY_HOUR);
-        List<EmailSubscription> subscriptions = subscriptionRepository.findByTimezoneOffsetAndConfirmed(clientOffset, true);
+        String utcNowHHmm = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("HH:mm"));
+        List<EmailSubscription> subscriptions = subscriptionRepository.findByNotificationUtcTimeAndConfirmed(utcNowHHmm, true);
+
         for (EmailSubscription subscription : subscriptions) {
             String location = subscription.getLocation();
             ForecastResponse forecast = weatherService.getForecast(location, 1); // Get forecast for the current day
@@ -54,7 +56,7 @@ public class EmailService {
 
             String subject = "Daily Weather Forecast (" + forecastDay.getDate() + ")";
             String unsubscriptionUrl = frontendUrl + "/unsubscription-confirm?token=" + subscription.getConfirmationToken();
-            String message = "<h1>Location: " + forecast.getLocation().getName() + "</h1>" +
+            String message = "<h1>Location: " + forecast.getLocation().getName() + ", " + forecast.getLocation().getCountry() + "</h1>" +
                     "<img src=\"https:" + forecastDay.getDay().getCondition().getIcon() + "\" />" +
                     "<h2>" + forecastDay.getDay().getCondition().getText() + "</h2>" +
                     "<p>Average temperature: " + forecastDay.getDay().getAvgtemp_c() + "°C</p>" +
@@ -64,15 +66,22 @@ public class EmailService {
                     "<p>Have a great day!</p>" +
                     "<p>If you wish to unsubscribe from these emails, click <a href=\"" + unsubscriptionUrl + "\">here</a>.</p>";
 
-            sendEmail(subscription.getEmail(), subject, message);
+            sendEmail(subscription.getEmail(), subject, message,
+                    () -> {
+                        ZoneId zoneId = ZoneId.of(subscription.getTimezone());
+                        subscription.setLastSentAt(ZonedDateTime.now(zoneId).toLocalDateTime());
+                        subscriptionRepository.save(subscription);
+                    },
+                    e -> {
+                    });
         }
     }
 
-    public void sendConfirmationEmail(String email, String location, String token) {
+    public void sendConfirmationEmail(String email, String location, String notificationTime, String token) {
         String subject = "Confirm Your Subscription";
         String confirmationUrl = frontendUrl + "/subscription-confirm?token=" + token;
         String message = "<p>Thank you for registering to receive daily weather forecasts. We have received your location: " + location + ".</p>"
-                + "<p>Your daily weather forecast will be delivered to your inbox at " + DAILY_HOUR + " AM every day, helping you plan your day with the latest information.</p>"
+                + "<p>Your daily weather forecast will be delivered to your inbox at " + notificationTime + " every day, helping you plan your day with the latest information.</p>"
                 + "<p>Please click the link below to confirm your subscription:</p>"
                 + "<a href=\"" + confirmationUrl + "\">Confirm Subscription</a>";
 
@@ -90,6 +99,11 @@ public class EmailService {
 
     @Async
     public void sendEmail(String to, String subject, String content) {
+        sendEmail(to, subject, content, null, null);
+    }
+
+    @Async
+    public void sendEmail(String to, String subject, String content, Runnable onSuccess, Consumer<Exception> onFailure) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
@@ -98,8 +112,14 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(content, true);
             mailSender.send(mimeMessage);
+
+            if (onSuccess != null) {
+                onSuccess.run();
+            }
         } catch (MessagingException e) {
-            // Handle exception
+            if (onFailure != null) {
+                onFailure.accept(e);
+            }
         }
     }
 }

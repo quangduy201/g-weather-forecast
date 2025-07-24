@@ -8,7 +8,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import vn.id.quangduy.gweatherforecast.dto.responses.CurrentResponse;
 import vn.id.quangduy.gweatherforecast.dto.responses.ForecastResponse;
+import vn.id.quangduy.gweatherforecast.dto.responses.SearchLocation;
 import vn.id.quangduy.gweatherforecast.services.WeatherService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/weather")
@@ -18,6 +21,16 @@ public class WeatherController {
 
     public WeatherController(WeatherService weatherService) {
         this.weatherService = weatherService;
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<SearchLocation>> getSearchResults(@RequestParam String q) {
+        try {
+            List<SearchLocation> locations = weatherService.getSearch(q);
+            return ResponseEntity.ok(locations);
+        } catch (HttpClientErrorException e) {
+            return ResponseEntity.status(e.getStatusCode()).build();
+        }
     }
 
     @GetMapping("/current")

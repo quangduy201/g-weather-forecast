@@ -5,7 +5,7 @@
   padding: 20px;
   background-color: #f5f5f5;
   border-radius: 10px;
-  max-width: 400px;
+  max-width: 500px;
   margin: 2rem auto;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 
@@ -19,9 +19,16 @@
   .subscribeForm {
     display: flex;
     flex-direction: column;
+    gap: 10px;
     width: 100%;
 
-    input {
+    label {
+      color: black;
+      text-align: left;
+      font-weight: lighter;
+    }
+
+    input, select, textarea {
       padding: 10px;
       margin-bottom: 10px;
       border: 1px solid #ccc;
@@ -49,8 +56,43 @@
       border-radius: 5px;
       cursor: pointer;
       font-size: 1rem;
+
       &:hover {
         background-color: #4157d0;
+      }
+    }
+
+    .cityWrapper {
+      position: relative;
+
+      input {
+        width: 100%;
+      }
+
+      .suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: white;
+        border: 1px solid #ccc;
+        border-top: none;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 10;
+        border-radius: 0 0 5px 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+        li {
+          color: black;
+          font-weight: lighter;
+          padding: 10px;
+          cursor: pointer;
+
+          &:hover {
+            background-color: #f0f0f0;
+          }
+        }
       }
     }
 

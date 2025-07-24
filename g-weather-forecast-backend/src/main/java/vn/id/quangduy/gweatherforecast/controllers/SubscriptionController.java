@@ -29,9 +29,13 @@ public class SubscriptionController {
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
         try {
-            emailSubscriptionService.register(request.getEmail(), request.getLocation());
+            emailSubscriptionService.register(
+                    request.getEmail(),
+                    request.getLocation(),
+                    request.getNotificationTime()
+            );
             return ResponseEntity.ok("Confirmation email sent. Please check your inbox.");
-        } catch(HttpClientErrorException e) {
+        } catch (HttpClientErrorException e) {
             return ResponseEntity.status(e.getStatusCode()).build();
         }
     }
@@ -50,7 +54,7 @@ public class SubscriptionController {
     public ResponseEntity<String> unsubscribe(@RequestBody UnsubscribeRequest request) {
         try {
             emailSubscriptionService.unsubscribe(request.getEmail());
-        } catch(HttpClientErrorException e) {
+        } catch (HttpClientErrorException e) {
             return ResponseEntity.status(e.getStatusCode()).build();
         }
         return ResponseEntity.ok("Unsubscription email sent. Please check your inbox.");

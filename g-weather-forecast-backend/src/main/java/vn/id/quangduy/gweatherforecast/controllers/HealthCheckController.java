@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/health")
 public class HealthCheckController {
@@ -26,37 +29,37 @@ public class HealthCheckController {
     }
 
     @GetMapping
-    public ResponseEntity<String> checkHealth() {
-        StringBuilder statusMessage = new StringBuilder("Health Check Results:\n");
+    public ResponseEntity<Map<String, Object>> checkHealth() {
+        Map<String, Object> healthStatus = new HashMap<>();
         HttpStatus status = HttpStatus.OK;
 
         // Check PostgreSQL
         try {
             jdbcTemplate.execute("SELECT 1");
-            statusMessage.append("PostgreSQL is UP\n");
+            healthStatus.put("db", "UP");
         } catch (Exception e) {
-            statusMessage.append("PostgreSQL is DOWN\n");
+            healthStatus.put("db", "DOWN");
             status = HttpStatus.SERVICE_UNAVAILABLE;
         }
 
         // Check Redis
         try {
             redisConnectionFactory.getConnection().ping();
-            statusMessage.append("Redis is UP\n");
+            healthStatus.put("redis", "UP");
         } catch (Exception e) {
-            statusMessage.append("Redis is DOWN\n");
+            healthStatus.put("redis", "DOWN");
             status = HttpStatus.SERVICE_UNAVAILABLE;
         }
 
         // Check MailSender
         try {
             mailSender.createMimeMessage();
-            statusMessage.append("MailSender is UP\n");
+            healthStatus.put("mail", "UP");
         } catch (Exception e) {
-            statusMessage.append("MailSender is DOWN\n");
+            healthStatus.put("mail", "DOWN");
             status = HttpStatus.SERVICE_UNAVAILABLE;
         }
 
-        return new ResponseEntity<>(statusMessage.toString(), status);
+        return new ResponseEntity<>(healthStatus, status);
     }
 }
